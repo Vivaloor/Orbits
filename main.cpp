@@ -82,13 +82,19 @@ int main() {
 	font.loadFromFile("LucidaSansRegular.ttf");
 	sf::Text T("hello", font);
 
+	app.setFramerateLimit(60);	
 	
-	Planet planet(1, sf::CircleShape(20), OurVector(500, 200), OurVector(0.5, 0));
-	Planet planet_2(4, sf::CircleShape(30), OurVector(500, 500), OurVector(-0.5, 0));
+	Planet planet(1, sf::CircleShape(10), OurVector(500, 200), OurVector(0.5, 0));
+	Planet planet_2(50, sf::CircleShape(40), OurVector(500, 500), OurVector(0, 0));
+	Planet planet_3(1, sf::CircleShape(10), OurVector(500, 700), OurVector(-0.5, 0));
+
+	planet.setFillColor(sf::Color::Blue);
+	planet_3.setFillColor(sf::Color::Green);
 
 	Universe universe;
 	universe.planets.push_back(planet);
 	universe.planets.push_back(planet_2);
+	universe.planets.push_back(planet_3);
 	
 
 	while (app.isOpen()) {
