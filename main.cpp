@@ -69,8 +69,8 @@ private:
 		OurFloat distance_squared = std::pow(static_cast<double>(first_planet.getPosition().x - second_planet.getPosition().x), 2) + std::pow(static_cast<double>(first_planet.getPosition().y + second_planet.getPosition().y), 2);
 		OurFloat scalar_value = G * first_planet.mass * second_planet.mass / distance_squared;
 		
-		first_planet.acceleration += basis((second_planet.getPosition() - first_planet.getPosition())) * scalar_value;
-		second_planet.acceleration += basis((first_planet.getPosition() - second_planet.getPosition())) * scalar_value;
+		first_planet.acceleration += basis((second_planet.getPosition() - first_planet.getPosition())) * scalar_value / first_planet.mass;
+		second_planet.acceleration += basis((first_planet.getPosition() - second_planet.getPosition())) * scalar_value / second_planet.mass;
 	}
 };
 
