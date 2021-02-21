@@ -16,6 +16,7 @@ public:
 	: mass{cMass}, CircleShape(cPicture),  speed{cSpeed}, acceleration{cAcceleration} {
 
 		setPosition(cPosition);
+		setOrigin(OurVector(getRadius(), getRadius()));
 	}
 
 	void update() {
@@ -87,10 +88,6 @@ int main() {
 	Planet planet(10, sf::CircleShape(5), OurVector(500, 300), OurVector(0, 0));
 	Planet planet_2(100000, sf::CircleShape(50), OurVector(500, 500), OurVector(0, 0));
 	Planet planet_3(10, sf::CircleShape(5), OurVector(500, 700), OurVector(0, 0));
-
-	planet.setOrigin(OurVector(planet.getRadius()/2, planet.getRadius()));
-	planet_2.setOrigin(OurVector(planet_2.getRadius(), planet_2.getRadius()));
-	planet_3.setOrigin(OurVector(planet_3.getRadius(), planet_3.getRadius()));
 
 	planet.setFillColor(sf::Color::Blue);
 	planet_3.setFillColor(sf::Color::Green);
