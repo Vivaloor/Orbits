@@ -1,86 +1,110 @@
 #include <SFML/Graphics.hpp>
 #include <string>
-#include <math.h>
+#include <iostream>
+#include <cmath>
+#include <vector>
 
-int main()
-{
-    // Create the main window
-    sf::RenderWindow app(sf::VideoMode(1000, 1000), "Orbity");
+using OurFloat = float;
+using OurVector = sf::Vector2<float>;
 
-    sf::CircleShape planeta;
-    planeta.setRadius(40);
-    planeta.setFillColor(sf::Color::Blue);
-    planeta.setPosition(460, 460);
+const double G{10000};
 
-    sf::CircleShape satelita;
-    satelita.setRadius(10);
-    satelita.setFillColor(sf::Color::White);
+class Planet : public sf::CircleShape {
 
-    float x = 0, y = -250;
-    float Vx = 0.06324555320336758663997787088865, Vy = 0;
-    float r;
+public:
+	Planet(float cMass, sf::CircleShape cPicture, OurVector cPosition = {0, 0}, OurVector cSpeed = {0, 0}, OurVector cAcceleration = {0, 0})
+	: mass{cMass}, CircleShape(cPicture),  speed{cSpeed}, acceleration{cAcceleration} {
+		
+		setPosition(cPosition);
+	}
 
-    const float C = 1;
+	void update() {
 
-    sf::Font font;
-    font.loadFromFile("LucidaSansRegular.ttf");
-    sf::Text T("hello", font);
+		speed += acceleration;
+		move(speed);
+	}
 
-    sf::VertexArray slady(sf::Points, 100000);
-    int i = 0;
+	float mass;
+	OurVector speed;
+	OurVector acceleration;
+};
 
+class Universe : public sf::Drawable {
 
-	// Start the game loop
-    while (app.isOpen())
-    {
-        // Process events
+public:
+	std::vector<Planet> planets;	
+	
+	void update() {
+		
+		for(int i = 0; i < planets.size(); i++)
+			planets[i].acceleration = OurVector(0, 0);
+
+		for(int i = 0; i < planets.size(); i++) {
+			
+			for(int j = i + 1; j < planets.size(); j++)
+				actBetween(planets[i], planets[j]);
+
+			planets[i].update();
+		}
+
+	}
+
+	void draw(sf::RenderTarget &target, sf::RenderStates states) const {
+
+		for(auto& current_planet : planets)
+			target.draw(current_planet, states);
+	}
+
+private:
+
+	OurVector basis(OurVector input_vector) {
+
+		OurFloat input_vector_lenght = std::sqrt(std::pow(input_vector.x, 2) + std::pow(input_vector.y, 2));
+
+		return(OurVector((input_vector.x / input_vector_lenght), (input_vector.y / input_vector_lenght)));
+	}
+	
+	void actBetween (Planet &first_planet, Planet &second_planet) {
+
+		OurFloat distance_squared = std::pow(static_cast<double>(first_planet.getPosition().x - second_planet.getPosition().x), 2) + std::pow(static_cast<double>(first_planet.getPosition().y + second_planet.getPosition().y), 2);
+		OurFloat scalar_value = G * first_planet.mass * second_planet.mass / distance_squared;
+		
+		first_planet.acceleration += basis((second_planet.getPosition() - first_planet.getPosition())) * scalar_value;
+		second_planet.acceleration += basis((first_planet.getPosition() - second_planet.getPosition())) * scalar_value;
+	}
+};
+
+int main() {
+
+	sf::RenderWindow app(sf::VideoMode(1000, 1000), "Orbity");
+	
+	sf::Font font;
+	font.loadFromFile("LucidaSansRegular.ttf");
+	sf::Text T("hello", font);
+
+	
+	Planet planet(1, sf::CircleShape(20), OurVector(500, 200), OurVector(0.5, 0));
+	Planet planet_2(4, sf::CircleShape(30), OurVector(500, 500), OurVector(-0.5, 0));
+
+	Universe universe;
+	universe.planets.push_back(planet);
+	universe.planets.push_back(planet_2);
+	
+
+	while (app.isOpen()) {
+
         sf::Event event;
-        while (app.pollEvent(event))
-        {
-            // Close window : exit
-            if (event.type == sf::Event::Closed)
-                app.close();
+        while (app.pollEvent(event)) {
+
+	if (event.type == sf::Event::Closed)
+		app.close();
         }
 
-        // Clear screen
-        app.clear();
+	app.clear();
 
-        x = x + Vx;
-        y = y + Vy;
+	universe.update();
+	app.draw(universe);
 
-        r = sqrt((x)*(x)+(y)*(y));
-
-        Vx = Vx + x/r * -1 * C / r / r;
-
-        Vy = Vy + y/r * -1 * C / r / r;
-
-        //if(y  > 225)
-        {
-            Vx = Vx + x/r * -1 * 0.001;
-            Vy = Vy + y/r * -1 * 0.001;
-
-            //Vx = Vx + x/r * -1 * 0.01 / r;
-            //Vy = Vy + y/r * -1 * 0.01 / r;
-        }
-
-        slady[i].position = sf::Vector2f(x+520, y+520);
-        slady[i].color = sf::Color::Red;
-        i++;
-        if(i==100000) i = 0;
-
-
-        T.setString(std::to_string(r));
-
-        satelita.setPosition(x + 510, y  + 510);
-
-        app.draw(planeta);
-
-        app.draw(slady);
-
-        app.draw(satelita);
-        app.draw(T);
-
-        // Update the window
         app.display();
     }
 
