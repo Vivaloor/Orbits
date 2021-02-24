@@ -5,35 +5,43 @@
 
 #include "Planet.hpp"
 #include <vector>
+#include <cmath>
 
 
 class Universe : public sf::Drawable {
 
 public:
+	Universe() = default;
+	Universe(Universe&);
+
 	std::vector<Planet> planets;
-	double G{1};
+	OurFloat G{1};
 
 	void update();
-
 	void draw(sf::RenderTarget &target, sf::RenderStates states) const;
 
 private:
 
 	OurVector basis(OurVector input_vector);
-
 	void actBetween (Planet &first_planet, Planet &second_planet);
 };
+
+Universe::Universe(Universe &original) {
+
+	planets = original.planets;
+	G = original.G;
+}
 
 void Universe::update()
 {
 
-    for(int i = 0; i < planets.size(); i++)
+    for(int i = 0; i < static_cast<int>(planets.size()); i++)
         planets[i].acceleration = OurVector(0, 0);
 
-    for(int i = 0; i < planets.size(); i++)
+    for(int i = 0; i < static_cast<int>(planets.size()); i++)
     {
 
-        for(int j = i + 1; j < planets.size(); j++)
+        for(int j = i + 1; j < static_cast<int>(planets.size()); j++)
             actBetween(planets[i], planets[j]);
 
         planets[i].update();
