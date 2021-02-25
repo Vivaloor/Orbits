@@ -14,10 +14,6 @@ int main() {
 	Universe universe;
 	Terminal terminal(&universe, &std::cin, &std::cout);
 
-	std::string t = "Twoja Stara!";
-	terminal.toLower(t);
-	std::cout << t;
-
 	while (app.isOpen()) 
 	{
 
