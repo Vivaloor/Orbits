@@ -13,7 +13,7 @@
 class Terminal {
 
 public:
-	Terminal (Universe *cUniverse, std::istream *cInputStream, std::ostream *cOutputStream);
+	Terminal (Universe *cUniverse = nullptr, std::istream *cInputStream = nullptr, std::ostream *cOutputStream = nullptr);
 
 	Universe *universe;
 	std::istream *inputStream;
@@ -78,7 +78,7 @@ sf::Color Terminal::stringToEnumColor(std::string inputString) {
 	#undef ICRE
 }
 
-Terminal::Terminal (Universe *cUniverse = nullptr, std::istream *cInputStream = nullptr, std::ostream *cOutputStream = nullptr) 
+Terminal::Terminal (Universe *cUniverse, std::istream *cInputStream, std::ostream *cOutputStream) 
 :universe{cUniverse}, inputStream{cInputStream}, outputStream{cOutputStream} {}
 
 Planet& Terminal::findByName(std::string planetsName) {
@@ -94,10 +94,14 @@ void Terminal::readInput(bool isOpenedFromFile = false) {
 
 	if(!isOpenedFromFile)
 		*outputStream << "Entered command mode - program is paused" << std::endl;
-	else
-		*outputStream << "Started loading the file" << std::endl;
 
 	while(true) {
+
+		if(isOpenedFromFile and inputStream->peek() == EOF) {
+
+			*outputStream << "Instructions have been loaded" << std::endl;
+			return;
+		}
 
 		std::vector<std::string> arguments;	
 		std::string input;
@@ -191,7 +195,7 @@ void Terminal::readInput(bool isOpenedFromFile = false) {
 				inputFileStream.close();
 			}
 			else 
-				std::cout << "Error has been encountered during opening \"" << arguments[1] << "\" file." << std::endl;
+				*outputStream << "Error has been encountered during opening \"" << arguments[1] << "\" file." << std::endl;
 			
 		}
 		else if (arguments[0] == "listPlanets") {
@@ -206,23 +210,16 @@ void Terminal::readInput(bool isOpenedFromFile = false) {
 				for(auto cPlanet : universe->planets)
 					*outputStream << cPlanet.name << "\t\t" << cPlanet.mass << '\t' << cPlanet.getRadius() << "\t(" << cPlanet.getPosition().x << ", " << cPlanet.getPosition().y << ")\t\t(" << cPlanet.speed.x << ", " << cPlanet.speed.y << ')' << std::endl;
 			}
-				
 		}
-		else if (arguments[0] == "continue" and !isOpenedFromFile) {
-			
-			*outputStream << "Continuing" << std::endl;
-			return;
-		}
-		else if ((arguments[0] == "continue" or inputStream->peek() == EOF) and isOpenedFromFile) {
+		else if (arguments[0] == "continue") {
 
-			*outputStream << "File has been loaded" << std::endl;
+			*outputStream << "Instructions have been loaded" << std::endl;
 			return;
 		}
-		else if(arguments[0] == "" and isOpenedFromFile)
-		{
-		}
-		else
+		else if(arguments[0] == "\n" or arguments[0] == ""){}					
+		else 
 			*outputStream << "This command does not exist" << std::endl;
+
 	}
 }
 	

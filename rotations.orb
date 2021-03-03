@@ -12,4 +12,4 @@ setMass second 1
 setRadius second 20
 setVelocity second -4 0
 
-setG 10000
+setG 50000

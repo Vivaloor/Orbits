@@ -22,10 +22,11 @@ public:
 
 private:
 
-	OurVector basis(OurVector input_vector);
 	OurFloat lenghtOfVector(OurVector);
+	OurVector basis(OurVector);
 	void actBetween (Planet &firstPlanet, Planet &secondPlanet);
 	void collideBetween (Planet &firstPlanet, Planet &secondPlanet);
+	OurFloat dotProduct(OurVector, OurVector);
 };
 
 Universe::Universe(Universe &original) {
@@ -37,18 +38,20 @@ Universe::Universe(Universe &original) {
 void Universe::update()
 {
 
-    for(int i = 0; i < static_cast<int>(planets.size()); i++)
-        planets[i].acceleration = OurVector(0, 0);
-
-    for(int i = 0; i < static_cast<int>(planets.size()); i++)
-    {
-
-       	for(int j = i + 1; j < static_cast<int>(planets.size()); j++)
-		actBetween(planets[i], planets[j]);
+	for(int i = 0; i < static_cast<int>(planets.size()) - 1; i++) {
 
 		planets[i].update();
+
+		for(int j = i + 1; j < static_cast<int>(planets.size()); j++) {
+
+			collideBetween(planets[i], planets[j]);
+			actBetween(planets[i], planets[j]);
+		}
+
 	}
 
+	if(planets.size())
+		planets[planets.size() - 1].update();
 }
 
 void Universe::draw(sf::RenderTarget &target, sf::RenderStates states) const
@@ -58,52 +61,53 @@ void Universe::draw(sf::RenderTarget &target, sf::RenderStates states) const
 		target.draw(current_planet, states);
 }
 
-OurVector Universe::basis(OurVector input_vector)
-{
-
-	OurFloat input_vector_lenght = std::sqrt(std::pow(input_vector.x, 2) + std::pow(input_vector.y, 2));
-
-	return(OurVector((input_vector.x / input_vector_lenght), (input_vector.y / input_vector_lenght)));
-}
-
 OurFloat Universe::lenghtOfVector(OurVector inputVector) {
 
 	return std::sqrt(std::pow(inputVector.x, 2) + std::pow(inputVector.y, 2));
 }
 
+OurVector Universe::basis(OurVector input_vector) {
+	OurFloat input_vector_lenght = std::sqrt(std::pow(input_vector.x, 2) + std::pow(input_vector.y, 2));
+
+	return(OurVector((input_vector.x / input_vector_lenght), (input_vector.y / input_vector_lenght)));
+}
+
 void Universe::actBetween (Planet &firstPlanet, Planet &secondPlanet)
 {
 
-	OurFloat distanceSquared = std::pow(static_cast<double>(firstPlanet.getPosition().x - secondPlanet.getPosition().x), 2) + std::pow(static_cast<double>(firstPlanet.getPosition().y - secondPlanet.getPosition().y), 2);
+	OurFloat distanceSquared = std::pow(firstPlanet.getPosition().x - secondPlanet.getPosition().x, 2) + std::pow(firstPlanet.getPosition().y - secondPlanet.getPosition().y, 2);
 	OurFloat scalarValue = G * firstPlanet.mass * secondPlanet.mass / distanceSquared;
 
-	firstPlanet.acceleration += basis((secondPlanet.getPosition() - firstPlanet.getPosition())) * scalarValue / firstPlanet.mass;
-	secondPlanet.acceleration += basis((firstPlanet.getPosition() - secondPlanet.getPosition())) * scalarValue / secondPlanet.mass;
+	firstPlanet.speed += basis((secondPlanet.getPosition() - firstPlanet.getPosition())) * scalarValue / firstPlanet.mass;
+	secondPlanet.speed += basis((firstPlanet.getPosition() - secondPlanet.getPosition())) * scalarValue / secondPlanet.mass;
 }
 
-/*void Universe::collideBetween (Planet &firstPlanet, Planet &secondPlanet) {
+OurFloat Universe::dotProduct(OurVector f, OurVector s) {
 
-	OurFloat distanceBetweenCenters {std::sqrt(std::pow(firstPlanet.getPosition().x - secondPlanet.getPosition().x, 2) + std::pow(firstPlanet.getPosition().y - secondPlanet.getPosition().y, 2))}
-	if(firstPlanet.getRadius() + secondPlanet.getRadius() < distanceBetweenCenters) {
+	return f.x * s.x + f.y * s.y;
+}
 
-		OurFloat angleBetweenPlanets;
+void Universe::collideBetween (Planet &firstPlanet, Planet &secondPlanet) {
 
-		if(firstPlanet.getPosition().x - secondPlanet.getPosition().x) {
-			angleBetweenPlanets = std::acos((secondPlanet.getPosition().x - firstPlanet.getPosition().x));
+
+	if((firstPlanet.getRadius() + secondPlanet.getRadius()) * (firstPlanet.getRadius() + secondPlanet.getRadius()) >= (firstPlanet.getPosition().x - secondPlanet.getPosition().x) * (firstPlanet.getPosition().x - secondPlanet.getPosition().x) + (firstPlanet.getPosition().y - secondPlanet.getPosition().y) * (firstPlanet.getPosition().y - secondPlanet.getPosition().y)) {
+
+		{
+			OurVector vectorBetween = secondPlanet.getPosition() - firstPlanet.getPosition();
+			OurFloat overlapDistanceDividedByTwo = (firstPlanet.getRadius() + secondPlanet.getRadius() - lenghtOfVector(vectorBetween)) / 2;
+
+			OurVector normalisedVector = vectorBetween / lenghtOfVector(vectorBetween);
+
+			firstPlanet.setPosition(firstPlanet.getPosition() - normalisedVector * overlapDistanceDividedByTwo);
+			secondPlanet.setPosition(secondPlanet.getPosition() + normalisedVector * overlapDistanceDividedByTwo);
 		}
-		else {
-			angleBetweenPlanets = std::asin((firstPlanet.getPosition().y - secondPlanet.getPosition().y));
-		}
 
-		OurFloat angleOfFirst;
-		if(firstPlanet.speed.x)
-			angleOfFirst = std::asin(firstPlanet.speed.x / lenghtOfVector(firstPlanet.speed));
-		else
-			angleOfFirst = std::acos(firstPlanet.speed.y / lenghtOfVector(firstPlanet.speed));
-
-		firstPlanet.speed = 
-		
+		OurVector normalisedVector = (secondPlanet.getPosition() - firstPlanet.getPosition()) / lenghtOfVector(firstPlanet.getPosition() - secondPlanet.getPosition());
+		OurVector k(firstPlanet.speed - secondPlanet.speed);
+		OurFloat p = 2 * dotProduct(normalisedVector, k) / (firstPlanet.mass + secondPlanet.mass);
+		firstPlanet.speed = firstPlanet.speed - p * secondPlanet.mass * normalisedVector;
+		secondPlanet.speed = secondPlanet.speed + p * firstPlanet.mass * normalisedVector;
 	}
-}*/
+}
 
 #endif // UNIVERSE_HPP_INCLUDED

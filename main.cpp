@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <fstream>
 #include "Universe.hpp"
 #include "Constants.hpp"
 #include "Planet.hpp"
@@ -9,10 +10,16 @@ int main() {
 
 	sf::RenderWindow app(sf::VideoMode(1000, 1000), "Orbity");
 
-	app.setFramerateLimit(60);
+	app.setFramerateLimit(45);
 
+	std::ifstream inputFileStream ("initiate.orb");
 	Universe universe;
-	Terminal terminal(&universe, &std::cin, &std::cout);
+	Terminal terminal(&universe, &inputFileStream, &std::cout);
+
+	if (inputFileStream.good())
+		terminal.readInput(true);
+
+	terminal.inputStream = &std::cin;
 
 	while (app.isOpen()) 
 	{
