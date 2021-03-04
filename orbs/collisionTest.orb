@@ -1,0 +1,15 @@
+newPlanet small
+setRadius small 20
+setPosition small 500 200
+setColor small green
+setVelocity small 0 1
+
+newPlanet center
+setRadius center 20
+setPosition center 500 800
+setVelocity center 0 -1
+
+setG 10
+
+continue
+

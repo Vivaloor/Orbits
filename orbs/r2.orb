@@ -1,0 +1,21 @@
+newPlanet sun 
+setMass sun 100
+setRadius sun 50
+setColor sun yellow
+setPosition sun 500 500
+
+newPlanet for
+setMass for 1
+setRadius for 15
+setColor for green
+setPosition for 500 100
+setVelocity for 3 0
+
+newPlanet sor
+setMass sor 1
+setRadius sor 15
+setColor sor blue
+setPosition sor 300 800
+setVelocity sor -2 1
+
+setG 100
