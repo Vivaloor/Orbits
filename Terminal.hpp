@@ -71,10 +71,8 @@ sf::Color Terminal::stringToEnumColor(std::string inputString) {
 	ICRE(magenta, Magenta);
 	ICRE(cyan, Cyan);
 	ICRE(transparent, Transparent);
-	else 
-		throw("Color " + inputString + " is not predefiend\n");
-
-	return sf::Color::White;
+	else
+		return sf::Color(std::stoul(inputString));
 	#undef ICRE
 }
 
@@ -198,6 +196,23 @@ void Terminal::readInput(bool isOpenedFromFile = false) {
 				*outputStream << "Error has been encountered during opening \"" << arguments[1] << "\" file." << std::endl;
 			
 		}
+		else if (arguments[0] == "saveToFile") {
+
+			std::ofstream fileStream(arguments[1]);
+			
+			if(fileStream.good()) {
+
+				for (auto currentPlanet : universe->planets) {
+
+					fileStream << "newPlanet " << currentPlanet.name << std::endl;
+					fileStream << "setRadius " << currentPlanet.name << ' ' << currentPlanet.getRadius() << std::endl;
+					fileStream << "setPosition " << currentPlanet.name << ' ' << currentPlanet.getPosition().x << ' ' << currentPlanet.getPosition().y << std::endl;
+					fileStream << "setVelocity " << currentPlanet.name << ' ' << currentPlanet.speed.x << ' ' << currentPlanet.speed.y << std::endl;
+					fileStream << "setColor " << currentPlanet.name << ' ' << currentPlanet.getFillColor().toInteger() << std::endl;
+					fileStream << std::endl;
+				}
+			}
+		}
 		else if (arguments[0] == "listPlanets") {
 
 			if(!universe->planets.size())
@@ -210,6 +225,21 @@ void Terminal::readInput(bool isOpenedFromFile = false) {
 				for(auto cPlanet : universe->planets)
 					*outputStream << cPlanet.name << "\t\t" << cPlanet.mass << '\t' << cPlanet.getRadius() << "\t(" << cPlanet.getPosition().x << ", " << cPlanet.getPosition().y << ")\t\t(" << cPlanet.speed.x << ", " << cPlanet.speed.y << ')' << std::endl;
 			}
+		}
+		else if (arguments[0] == "help") {
+
+			*outputStream << "Available commands:\n\
+newPlanet [planet's name]\n\
+removePlanet [planet's name]\n\
+listPlanets\n\
+setPosition [planet's name] [x] [y]\n\
+setColor [planet's name] [color]\n\
+setMass [planet's name] [mass]\n\
+setVelocity [planet's name] [x] [y]\n\
+setRadius [planet's name] [radius]\n\
+setG [G constant]\n\
+loadFromFile [path]\n\
+You can press space while focused on the display window to stop simulation and enter the commandline mode. Automaticly, after turning program on the \"initiate.orb\" is loaded. If you want to create your own state file, you can create it just like any other text file. The \".orb\" suffix is suggested." << std::endl;
 		}
 		else if (arguments[0] == "continue") {
 
